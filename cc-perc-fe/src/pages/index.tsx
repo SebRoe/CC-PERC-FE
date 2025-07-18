@@ -372,7 +372,6 @@ export default function IndexPage() {
     { text: "Homepage" },
     { text: "Brand", isComingSoon: true },
     { text: "Competitors", isComingSoon: true },
-    { text: "Products", isComingSoon: true },
     { text: "Social Media", isComingSoon: true },
   ];
 

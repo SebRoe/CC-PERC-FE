@@ -17,6 +17,7 @@ import {
   TrendingUpIcon,
   EyeIcon 
 } from "@/components/icons";
+import RotatingWords from "@/components/rotating-words";
 
 const AnimatedOrb = ({
   delay = 0,
@@ -366,6 +367,14 @@ export default function IndexPage() {
     "software development",
     "consulting services"
   ];
+  
+  const rotatingWords = [
+    { text: "Homepage" },
+    { text: "Brand", isComingSoon: true },
+    { text: "Competitors", isComingSoon: true },
+    { text: "Products", isComingSoon: true },
+    { text: "Social Media", isComingSoon: true },
+  ];
 
   return (
     <DefaultLayout>
@@ -394,7 +403,7 @@ export default function IndexPage() {
             initial={{ opacity: 0, y: 30 }}
             transition={{ duration: 0.8 }}
           >
-            <motion.div
+            {/* <motion.div
               animate={{ opacity: 1, scale: 1 }}
               initial={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -404,9 +413,9 @@ export default function IndexPage() {
                 color="primary"
                 variant="flat"
               >
-                AI-Powered Homepage Analysis
+                AI-Powered Content Analysis
               </Chip>
-            </motion.div>
+            </motion.div> */}
 
             <motion.h1
               animate={{ opacity: 1, y: 0 }}
@@ -414,7 +423,8 @@ export default function IndexPage() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              When AI Agents Evaluate Your Homepage
+              When AI Agents Evaluate Your{" "}
+              <RotatingWords words={rotatingWords} className="text-orange-500" />
               <br />
               <span className="bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 bg-clip-text text-transparent">
                 What Do They See?
@@ -430,7 +440,7 @@ export default function IndexPage() {
               When someone searches for{" "}
               <TypingEffect texts={typingTexts} speed={80} delay={1500} />
               <br />
-              AI agents decide if your homepage is the right match. See what they really think.
+              AI agents decide if your content is the right match. See what they really think.
             </motion.p>
 
             <motion.div
@@ -446,7 +456,7 @@ export default function IndexPage() {
                 variant="shadow"
                 onPress={() => window.open("/analyze", "_blank")}
               >
-                Analyze My Homepage
+                Analyze My Content
               </Button>
               <Button
                 className="px-8 py-3 text-lg font-medium border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white transition-colors"
@@ -857,7 +867,7 @@ export default function IndexPage() {
         </section>
 
         {/* Footer */}
-        <footer className="relative z-10 py-8 px-6 border-t border-orange-200 dark:border-orange-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md">
+        <footer className="relative z-10 py-8 px-6">
           <div className="max-w-6xl mx-auto text-center">
             <p className="text-gray-600 dark:text-gray-400">
               Unlock the power of AI insights for your homepage •{" "}

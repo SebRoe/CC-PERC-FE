@@ -88,6 +88,39 @@ class ApiClient {
   async logout(): Promise<void> {
     this.setToken(null)
   }
+
+  // ------------------------------------------------------------
+  // Analysis endpoints
+  // ------------------------------------------------------------
+
+  async requestAnalysis(url: string, analysisType: 'homepage' = 'homepage') {
+    type AnalysisResponse = {
+      id: string
+      url: string
+      status: 'pending' | 'processing' | 'completed' | 'failed'
+      analysis_type: string
+      ai_analysis?: Record<string, unknown>
+      screenshots?: string[]
+      created_at: string
+    }
+
+    return this.request<AnalysisResponse>('/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ url, analysis_type: analysisType }),
+    })
+  }
+
+  async getAnalyses(): Promise<any[]> {
+    return this.request<any[]>('/analyses')
+  }
+
+  async getAnalysis(id: string): Promise<any> {
+    return this.request<any>(`/analyses/${id}`)
+  }
+
+  async deleteAnalysis(id: string): Promise<void> {
+    return this.request<void>(`/analyses/${id}`, { method: 'DELETE' })
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL)

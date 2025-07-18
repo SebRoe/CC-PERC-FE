@@ -5,7 +5,7 @@ import { Input } from "@heroui/input";
 import { Progress } from "@heroui/progress";
 import { Tabs, Tab } from "@heroui/tabs";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import DashboardLayout from "@/layouts/dashboard";
@@ -19,6 +19,7 @@ import {
   EyeIcon,
   BarChartIcon,
 } from "@/components/icons";
+import { apiClient } from "@/lib/api";
 
 const DashboardCard = ({
   children,
@@ -86,21 +87,20 @@ const StatCard = ({
   </motion.div>
 );
 
-const AnalysisCard = ({
-  url,
-  score,
-  status,
-  insights,
-  timestamp,
-  delay = 0,
-}: {
-  url: string;
-  score: number;
-  status: string;
-  insights: string[];
-  timestamp: string;
+interface AnalysisCardProps {
+  analysis: any; // backend payload shape
   delay?: number;
-}) => (
+}
+
+const AnalysisCard = ({ analysis, delay = 0, onDelete }: AnalysisCardProps & { onDelete: (id:string)=>void }) => {
+  const navigate = useNavigate();
+  const url = new URL(analysis.url).hostname;
+  const status = analysis.status;
+  const score = analysis.ai_analysis?.summary?.overall_score ?? 0;
+  const insights: string[] = analysis.ai_analysis?.summary?.key_findings ?? [];
+  const timestamp = new Date(analysis.created_at).toLocaleString();
+
+  return (
   <motion.div
     animate={{ opacity: 1, x: 0 }}
     initial={{ opacity: 0, x: -20 }}
@@ -168,7 +168,7 @@ const AnalysisCard = ({
             Key Insights:
           </h4>
           <div className="space-y-1">
-            {insights.map((insight, index) => (
+            {insights.slice(0, 3).map((insight, index) => (
               <div key={index} className="flex items-start gap-2">
                 <div className="w-1 h-1 bg-orange-500 rounded-full mt-2 flex-shrink-0" />
                 <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -184,71 +184,86 @@ const AnalysisCard = ({
             className="w-full border-orange-300 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20"
             size="sm"
             variant="bordered"
+            onPress={() => navigate(`/analysis/${analysis.id}`)}
           >
             View Full Report
+          </Button>
+          <Button
+            className="w-full mt-2 border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+            size="sm"
+            variant="bordered"
+            onPress={() => onDelete(analysis.id)}
+          >
+            Delete
           </Button>
         </div>
       </CardBody>
     </Card>
   </motion.div>
-);
+  );
+};
 
 export default function DashboardPage() {
   const [newAnalysisUrl, setNewAnalysisUrl] = useState("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [urlError, setUrlError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [analyses, setAnalyses] = useState<any[]>([]);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  const fetchAnalyses = async () => {
+    try {
+      const list = await apiClient.getAnalyses();
+      setAnalyses(list.sort((a: any, b: any) => (a.created_at < b.created_at ? 1 : -1)));
+    } catch (err) {
+      console.error("Failed to fetch analyses", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalyses();
+    const id = setInterval(fetchAnalyses, 10000); // poll every 10s
+    return () => clearInterval(id);
+  }, []);
 
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
+  const handleDelete = async (id: string) => {
+    await apiClient.deleteAnalysis(id);
+    await fetchAnalyses();
+  };
+
   const handleNewAnalysis = async () => {
     if (!newAnalysisUrl) return;
 
-    setIsAnalyzing(true);
-    // Simulate analysis
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    setIsAnalyzing(false);
-    setNewAnalysisUrl("");
-  };
+    // ensure URL has protocol
+    let urlToAnalyze = newAnalysisUrl.trim();
+    if (!/^https?:\/\//i.test(urlToAnalyze)) {
+      urlToAnalyze = `https://${urlToAnalyze}`;
+    }
+    try {
+      // Validate URL constructability
+      new URL(urlToAnalyze);
+    } catch {
+      setUrlError("Please enter a valid URL");
+      return;
+    }
+    setUrlError(null);
 
-  const mockAnalyses = [
-    {
-      url: "apple.com",
-      score: 89,
-      status: "completed",
-      insights: [
-        "Strong brand messaging",
-        "Excellent mobile experience",
-        "Could improve loading speed",
-      ],
-      timestamp: "2 hours ago",
-    },
-    {
-      url: "tesla.com",
-      score: 76,
-      status: "completed",
-      insights: [
-        "Clear value proposition",
-        "Great visual design",
-        "SEO could be enhanced",
-      ],
-      timestamp: "1 day ago",
-    },
-    {
-      url: "startup.com",
-      score: 45,
-      status: "analyzing",
-      insights: [
-        "Analyzing content structure",
-        "Evaluating user experience",
-        "Checking SEO optimization",
-      ],
-      timestamp: "Just now",
-    },
-  ];
+    try {
+      setIsSubmitting(true);
+      await apiClient.requestAnalysis(urlToAnalyze, "homepage");
+      setNewAnalysisUrl("");
+      await fetchAnalyses();
+    } catch (err) {
+      console.error("Analysis request failed", err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -262,7 +277,7 @@ export default function DashboardPage() {
                   AI Analysis Dashboard
                 </h1>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Welcome back, {user?.name || user?.email}! Monitor your
+                  Welcome back, {user?.first_name || user?.email}! Monitor your
                   content performance through AI agent evaluation
                 </p>
               </div>
@@ -352,14 +367,17 @@ export default function DashboardPage() {
                   value={newAnalysisUrl}
                   onChange={(e) => setNewAnalysisUrl(e.target.value)}
                 />
+                {urlError && (
+                  <p className="text-sm text-red-600 mt-2">{urlError}</p>
+                )}
                 <Button
                   className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 px-8"
                   color="primary"
-                  disabled={!newAnalysisUrl || isAnalyzing}
-                  isLoading={isAnalyzing}
+                  disabled={!newAnalysisUrl || isSubmitting}
+                  isLoading={isSubmitting}
                   onPress={handleNewAnalysis}
                 >
-                  {isAnalyzing ? "Analyzing..." : "Analyze"}
+                  {isSubmitting ? "Analyzing..." : "Analyze"}
                 </Button>
               </div>
             </DashboardCard>
@@ -378,10 +396,11 @@ export default function DashboardPage() {
                   Recent Analyses
                 </h2>
                 <div className="space-y-4">
-                  {mockAnalyses.map((analysis, index) => (
+                  {analyses.map((analysis, index) => (
                     <AnalysisCard
                       key={index}
-                      {...analysis}
+                      analysis={analysis}
+                      onDelete={handleDelete}
                       delay={0.7 + index * 0.1}
                     />
                   ))}

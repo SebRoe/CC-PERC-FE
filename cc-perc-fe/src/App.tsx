@@ -9,6 +9,7 @@ import { Spinner } from "@heroui/spinner";
 import IndexPage from "@/pages/index";
 import AuthPage from "@/pages/auth";
 import DashboardPage from "@/pages/dashboard";
+import AnalysisDetailPage from "@/pages/analysis-detail";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
@@ -57,6 +58,14 @@ function App() {
           </ProtectedRoute>
         }
         path="/dashboard"
+      />
+      <Route
+        element={
+          <ProtectedRoute>
+            <AnalysisDetailPage />
+          </ProtectedRoute>
+        }
+        path="/analysis/:id"
       />
     </Routes>
   );

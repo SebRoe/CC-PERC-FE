@@ -207,7 +207,7 @@ export default function AuthPage() {
                   </motion.div>
                 </CardHeader>
 
-                <CardBody className="pt-0">
+                <CardBody className="pt-4">
                   <form className="space-y-4" onSubmit={handleSubmit}>
                     <AnimatePresence mode="wait">
                       {!isLogin && (

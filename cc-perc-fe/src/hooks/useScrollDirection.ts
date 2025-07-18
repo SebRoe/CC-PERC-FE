@@ -4,7 +4,7 @@ type ScrollDirection = "up" | "down" | null;
 
 const useScrollDirection = (): ScrollDirection => {
   const [scrollDirection, setScrollDirection] = useState<ScrollDirection>(null);
-  const [prevOffset, setPrevOffset] = useState(0);
+  const [prevOffset] = useState(0);
 
   useEffect(() => {
     const threshold = 10;
@@ -16,6 +16,7 @@ const useScrollDirection = (): ScrollDirection => {
 
       if (Math.abs(scrollY - lastScrollY) < threshold) {
         ticking = false;
+
         return;
       }
 
@@ -32,11 +33,11 @@ const useScrollDirection = (): ScrollDirection => {
     };
 
     window.addEventListener("scroll", onScroll);
-    
+
     return () => window.removeEventListener("scroll", onScroll);
   }, [prevOffset]);
 
   return scrollDirection;
 };
 
-export default useScrollDirection; 
+export default useScrollDirection;

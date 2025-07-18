@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Chip } from "@heroui/chip";
+import { Chip } from "@heroui/react";
 
 type RotatingWordsProps = {
   words: Array<{
@@ -37,7 +37,7 @@ const RotatingWords = ({ words, interval = 3000, className = "" }: RotatingWords
             <span>{words[currentIndex].text}</span>
             {words[currentIndex].isComingSoon && (
               <Chip
-                size="md" 
+                size="sm" 
                 color="secondary"
                 variant="flat"
                 className="text-xs font-medium scale-75 whitespace-nowrap"

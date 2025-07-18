@@ -4,10 +4,11 @@ import {
   NavbarContent,
   NavbarItem,
   Button,
+  Link,
 } from "@heroui/react";
 import { useState, useEffect } from "react";
 
-import OrgIcon from "@/components/org-icon";
+import { OrgIcon } from "@/components/icons";
 
 export default function DefaultLayout({
   children,
@@ -52,10 +53,12 @@ export default function DefaultLayout({
         >
           <Navbar className="p-0 min-h-0 bg-transparent">
             <NavbarBrand>
-              <OrgIcon size={36} />
-              <p className="font-bold ml-2 text-lg">
-                Ai<span className="font-bold text-2xl">∀</span>i
-              </p>
+              <Link href="/" className="flex items-center">
+                <OrgIcon size={36} />
+                <p className="font-bold ml-2 text-lg">
+                  Ai<span className="font-bold text-2xl">∀</span>i
+                </p>
+              </Link>
             </NavbarBrand>
 
             <NavbarContent className="gap-2 sm:gap-4" justify="end">
@@ -75,8 +78,6 @@ export default function DefaultLayout({
         </div>
       </div>
 
-      {/* Add padding to account for the fixed navbar */}
-      {/* <div className="pt-16 sm:pt-24"></div> */}
 
       {children}
     </div>

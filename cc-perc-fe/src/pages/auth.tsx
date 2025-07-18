@@ -6,9 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
+import { Alert, Checkbox } from "@heroui/react";
 import DefaultLayout from "@/layouts/default";
 import { useAuth } from "@/contexts/AuthContext";
-import { FastForwardIcon, ShieldIcon, EyeIcon } from "@/components/icons";
+import { FastForwardIcon, ShieldIcon, EyeIcon, BeakerIcon } from "@/components/icons";
 
 const AnimatedOrb = ({
   delay = 0,
@@ -176,9 +178,9 @@ export default function AuthPage() {
               <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border-orange-200 dark:border-orange-700 shadow-2xl min-w-[500px] p-4">
                 <CardHeader className="flex flex-col items-center pb-6 w-full justify-start items-start mb-2">
                   <motion.div
-                    animate={{ scale: 1, opacity: 1 }}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
+                    // animate={{ scale: 1, opacity: 1 }}
+                    // initial={{ scale: 0.8, opacity: 0 }}
+                    // transition={{ duration: 0.5, delay: 0.3 }}
                   >
                     <div className="flex flex-row items-center justify-center gap-2">
                       <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center">
@@ -308,19 +310,14 @@ export default function AuthPage() {
                     )}
 
                     {isLogin && (
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center">
-                          <input
-                            className="mr-2 rounded border-orange-300 text-orange-500 focus:ring-orange-500"
+                      <div className="flex justify-between items-center mx-2">
+                        <div className="flex items-center gap-2 ">
+                          <Checkbox
                             id="remember"
-                            type="checkbox"
-                          />
-                          <label
-                            className="text-sm text-gray-600 dark:text-gray-300"
-                            htmlFor="remember"
+                            size="sm"
                           >
-                            Remember me
-                          </label>
+                              Remember me
+                          </Checkbox>
                         </div>
                         <Link
                           className="text-sm text-orange-500 hover:text-orange-600 transition-colors"
@@ -382,15 +379,19 @@ export default function AuthPage() {
 
                   <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                     {isLogin && (
-                      <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-                        <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
-                          Demo Credentials
-                        </h4>
-                        <p className="text-xs text-blue-600 dark:text-blue-400">
+                      <Alert color="default" title="Demo Credentials" description={
+                        <p className="text-xs">
                           <strong>Email:</strong> demo@example.com<br/>
                           <strong>Password:</strong> password123
                         </p>
-                      </div>
+                      }
+                      classNames={{
+                        title: "text-xs",
+                        description: "text-xs",
+                        base: "p-2 mb-4",
+                      }}
+                      icon={<BeakerIcon className="text-orange-500" size={20} />}
+                      />
                     )}
                     <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
                       By {isLogin ? "signing in" : "creating an account"}, you

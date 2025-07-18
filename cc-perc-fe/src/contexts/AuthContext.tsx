@@ -1,10 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { apiClient, type User } from "@/lib/api";
 
-interface User {
-  id: string;
-  email: string;
-  name: string;
-}
 
 interface AuthContextType {
   user: User | null;
@@ -34,58 +30,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize with demo users if none exist
-    const users = JSON.parse(localStorage.getItem("registered_users") || "[]");
-    if (users.length === 0) {
-      const demoUsers = [
-        {
-          id: "1",
-          email: "demo@example.com",
-          password: "password123",
-          name: "Demo User"
-        },
-        {
-          id: "2", 
-          email: "test@cc-perc.com",
-          password: "test123",
-          name: "Test User"
+    // Check for stored token and get current user on app start
+    const checkAuth = async () => {
+      const token = localStorage.getItem("access_token");
+      if (token) {
+        apiClient.setToken(token);
+        try {
+          const currentUser = await apiClient.getCurrentUser();
+          setUser(currentUser);
+        } catch (error) {
+          console.error("Failed to get current user:", error);
+          // Clear invalid token
+          apiClient.setToken(null);
         }
-      ];
-      localStorage.setItem("registered_users", JSON.stringify(demoUsers));
-    }
+      }
+      setIsLoading(false);
+    };
 
-    // Check for stored user data on app start
-    const storedUser = localStorage.getItem("user");
-
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    checkAuth();
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Check if user exists in localStorage (mock database)
-      const users = JSON.parse(localStorage.getItem("registered_users") || "[]");
-      const user = users.find((u: any) => u.email === email && u.password === password);
-      
-      if (!user) {
-        throw new Error("Invalid email or password");
-      }
-
-      // Mock user data
-      const userData = {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      };
-
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
+      const response = await apiClient.login(email, password);
+      apiClient.setToken(response.access_token);
+      setUser(response.user);
     } catch (error) {
       console.error("Login failed:", error);
       throw error;
@@ -101,38 +71,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   ): Promise<void> => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Check if user already exists
-      const users = JSON.parse(localStorage.getItem("registered_users") || "[]");
-      const existingUser = users.find((u: any) => u.email === email);
-      
-      if (existingUser) {
-        throw new Error("Email already registered");
-      }
-
-      // Create new user
-      const newUser = {
-        id: Date.now().toString(),
-        email,
-        password,
-        name,
-      };
-
-      // Save to mock database
-      users.push(newUser);
-      localStorage.setItem("registered_users", JSON.stringify(users));
-
-      // Set current user
-      const userData = {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.name,
-      };
-
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
+      const response = await apiClient.register(email, password, name);
+      apiClient.setToken(response.access_token);
+      setUser(response.user);
     } catch (error) {
       console.error("Registration failed:", error);
       throw error;
@@ -143,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = (): void => {
     setUser(null);
-    localStorage.removeItem("user");
+    apiClient.logout();
   };
 
   const value: AuthContextType = {

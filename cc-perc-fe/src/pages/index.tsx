@@ -210,6 +210,7 @@ const InteractiveDemo = () => {
               }
               value={url}
               onChange={(e) => setUrl(e.target.value)}
+              aria-label="Enter homepage URL for analysis"
             />
           </div>
 
@@ -232,6 +233,7 @@ const InteractiveDemo = () => {
                       repeat: Infinity,
                       ease: "linear",
                     }}
+                    aria-label="Analyzing homepage"
                   />
                   Analyzing Your Homepage...
                 </span>
@@ -252,7 +254,7 @@ const InteractiveDemo = () => {
                 exit={{ opacity: 0, height: 0 }}
                 initial={{ opacity: 0, height: 0 }}
               >
-                <Progress color="primary" size="lg" value={progress} />
+                <Progress color="primary" size="lg" value={progress} aria-label="Analysis progress" />
                 <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
                   {analysisSteps[currentStep] || "Processing..."}
                 </p>
@@ -386,6 +388,7 @@ const LiveEvaluationPreview = () => {
                     : "danger"
               }
               value={step.score}
+              aria-label={`${step.label} score: ${step.score}%`}
             />
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
               {step.description}
@@ -592,17 +595,17 @@ export default function IndexPage() {
                     <span>Query Relevance</span>
                     <span className="text-red-600">35%</span>
                   </div>
-                  <Progress color="danger" size="sm" value={35} />
+                  <Progress color="danger" size="sm" value={35} aria-label="Query relevance score: 35%" />
                   <div className="flex justify-between">
                     <span>Content Quality</span>
                     <span className="text-red-600">48%</span>
                   </div>
-                  <Progress color="danger" size="sm" value={48} />
+                  <Progress color="danger" size="sm" value={48} aria-label="Content quality score: 48%" />
                   <div className="flex justify-between">
                     <span>User Experience</span>
                     <span className="text-red-600">43%</span>
                   </div>
-                  <Progress color="danger" size="sm" value={43} />
+                  <Progress color="danger" size="sm" value={43} aria-label="User experience score: 43%" />
                 </div>
                 <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
                   <p className="text-sm text-red-700 dark:text-red-300">
@@ -630,17 +633,17 @@ export default function IndexPage() {
                     <span>Query Relevance</span>
                     <span className="text-green-600">92%</span>
                   </div>
-                  <Progress color="success" size="sm" value={92} />
+                  <Progress color="success" size="sm" value={92} aria-label="Query relevance score: 92%" />
                   <div className="flex justify-between">
                     <span>Content Quality</span>
                     <span className="text-green-600">88%</span>
                   </div>
-                  <Progress color="success" size="sm" value={88} />
+                  <Progress color="success" size="sm" value={88} aria-label="Content quality score: 88%" />
                   <div className="flex justify-between">
                     <span>User Experience</span>
                     <span className="text-green-600">87%</span>
                   </div>
-                  <Progress color="success" size="sm" value={87} />
+                  <Progress color="success" size="sm" value={87} aria-label="User experience score: 87%" />
                 </div>
                 <div className="mt-4 p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
                   <p className="text-sm text-green-700 dark:text-green-300">

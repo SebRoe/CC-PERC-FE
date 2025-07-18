@@ -24,12 +24,14 @@ export default {
           800: '#8d2f00',
           900: '#5d1f00',
           DEFAULT: '#ff6500',
-          foreground: '#ffffff'
-        }
+          foreground: '#ffffff',
+        },
+        focus: '#ff6500'
+
       }
     },
   },
-  darkMode: "class",
+  darkMode: "light",
   plugins: [heroui({
     themes: {
       light: {
@@ -46,8 +48,9 @@ export default {
             800: '#8d2f00',
             900: '#5d1f00',
             DEFAULT: '#ff6500',
-            foreground: '#ffffff'
-          }
+            foreground: '#ffffff',
+          },
+          focus: '#ff6500',
         }
       },
       dark: {

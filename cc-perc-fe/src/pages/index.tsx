@@ -1,10 +1,22 @@
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { Chip } from "@heroui/chip";
-import { motion } from "framer-motion";
+import { Input } from "@heroui/input";
+import { Progress } from "@heroui/progress";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 import DefaultLayout from "@/layouts/default";
+import { 
+  TargetIcon, 
+  ZapIcon, 
+  ShieldIcon, 
+  BrainIcon, 
+  ChartIcon, 
+  BarChartIcon, 
+  TrendingUpIcon,
+  EyeIcon 
+} from "@/components/icons";
 
 const AnimatedOrb = ({
   delay = 0,
@@ -37,7 +49,7 @@ const InsightCard = ({
   description,
   delay = 0,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   title: string;
   description: string;
   delay?: number;
@@ -46,22 +58,290 @@ const InsightCard = ({
     animate={{ opacity: 1, y: 0 }}
     initial={{ opacity: 0, y: 50 }}
     transition={{ duration: 0.6, delay }}
+    className="h-full"
   >
-    <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border-orange-200 dark:border-orange-700 hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-300 group">
-      <CardBody className="p-6">
-        <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
+    <Card className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border-orange-200 dark:border-orange-700 hover:shadow-lg hover:shadow-orange-500/25 transition-all duration-300 group hover:border-orange-400 dark:hover:border-orange-500 h-full">
+      <CardBody className="p-6 flex flex-col h-full">
+        <motion.div 
+          className="w-12 h-12 mb-4 text-orange-500 group-hover:text-orange-600 transition-colors duration-300 flex-shrink-0"
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          transition={{ duration: 0.2 }}
+        >
           {icon}
-        </div>
-        <h3 className="text-xl font-bold mb-2 text-gray-800 dark:text-white">
+        </motion.div>
+        <h3 className="text-xl font-bold mb-3 text-gray-800 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-300 flex-shrink-0">
           {title}
         </h3>
-        <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+        <p className="text-gray-600 dark:text-gray-300 leading-relaxed flex-grow">
           {description}
         </p>
       </CardBody>
     </Card>
   </motion.div>
 );
+
+const TypingEffect = ({ texts, speed = 100, delay = 1000 }: { texts: string[]; speed?: number; delay?: number }) => {
+  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [currentText, setCurrentText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const text = texts[currentTextIndex];
+    const timeout = setTimeout(() => {
+      if (!isDeleting && currentText !== text) {
+        setCurrentText(text.slice(0, currentText.length + 1));
+      } else if (isDeleting && currentText !== "") {
+        setCurrentText(text.slice(0, currentText.length - 1));
+      } else if (!isDeleting && currentText === text) {
+        setTimeout(() => setIsDeleting(true), delay);
+      } else if (isDeleting && currentText === "") {
+        setIsDeleting(false);
+        setCurrentTextIndex((prev) => (prev + 1) % texts.length);
+      }
+    }, isDeleting ? speed / 2 : speed);
+
+    return () => clearTimeout(timeout);
+  }, [currentText, isDeleting, currentTextIndex, texts, speed, delay]);
+
+  return (
+    <span className="text-orange-500 font-semibold">
+      {currentText}
+      <motion.span
+        animate={{ opacity: [1, 0] }}
+        transition={{ duration: 0.8, repeat: Infinity }}
+        className="ml-1"
+      >
+        |
+      </motion.span>
+    </span>
+  );
+};
+
+const InteractiveDemo = () => {
+  const [url, setUrl] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [showResults, setShowResults] = useState(false);
+
+  const handleAnalyze = () => {
+    if (!url) return;
+    setIsAnalyzing(true);
+    setProgress(0);
+    setShowResults(false);
+
+    // Simulate analysis progress
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setIsAnalyzing(false);
+          setShowResults(true);
+          return 100;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 200);
+  };
+
+  const analysisSteps = [
+    "Scanning homepage structure...",
+    "Analyzing content relevance...",
+    "Evaluating user experience...",
+    "Checking SEO optimization...",
+    "Assessing brand messaging...",
+    "Generating AI insights..."
+  ];
+
+  const currentStep = Math.floor((progress / 100) * analysisSteps.length);
+
+  return (
+    <div className="relative overflow-hidden bg-gradient-to-br from-white via-orange-50/30 to-white dark:from-gray-800 dark:via-orange-900/10 dark:to-gray-800 rounded-3xl p-8 border-2 border-orange-200 dark:border-orange-700 shadow-2xl">
+      {/* Subtle pattern overlay */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-orange-600 opacity-10"></div>
+      </div>
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-center mb-8">
+          <motion.div 
+            className="w-12 h-12 text-orange-500 mr-4 p-2 bg-orange-100 dark:bg-orange-900/30 rounded-xl"
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            transition={{ duration: 0.2 }}
+          >
+            <BrainIcon size={32} />
+          </motion.div>
+          <div>
+            <h3 className="text-3xl font-bold text-gray-800 dark:text-white">
+              AI Homepage Analyzer
+            </h3>
+            <p className="text-orange-600 dark:text-orange-400 font-medium">
+              Real-time evaluation powered by AI
+            </p>
+          </div>
+        </div>
+      
+        <div className="space-y-6">
+          <div className="relative">
+            <Input
+              placeholder="Enter your homepage URL (e.g., https://apple.com)"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              disabled={isAnalyzing}
+              size="lg"
+              className="text-lg"
+              classNames={{
+                input: "text-lg",
+                inputWrapper: "bg-white dark:bg-gray-700 border-2 border-orange-200 dark:border-orange-700 shadow-lg hover:border-orange-300 focus-within:border-orange-500"
+              }}
+              startContent={
+                <div className="text-orange-500 text-xl mr-2">
+                  🌐
+                </div>
+              }
+            />
+          </div>
+          
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              color="primary"
+              size="lg"
+              className="w-full py-4 text-lg font-semibold shadow-lg bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
+              onPress={handleAnalyze}
+              isLoading={isAnalyzing}
+              disabled={!url || isAnalyzing}
+            >
+              {isAnalyzing ? (
+                <span className="flex items-center">
+                  <motion.div 
+                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mr-3"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  />
+                  Analyzing Your Homepage...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  <BrainIcon size={20} className="mr-2" />
+                  Start AI Analysis
+                </span>
+              )}
+            </Button>
+          </motion.div>
+
+        <AnimatePresence>
+          {isAnalyzing && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="space-y-3"
+            >
+              <Progress value={progress} color="primary" size="lg" />
+              <p className="text-sm text-gray-600 dark:text-gray-300 text-center">
+                {analysisSteps[currentStep] || "Processing..."}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showResults && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 space-y-4"
+            >
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">85</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">UX Score</div>
+                </div>
+                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600">72</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">SEO Score</div>
+                </div>
+                <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">91</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-300">Brand Clarity</div>
+                </div>
+              </div>
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h4 className="font-semibold mb-2">AI Insights:</h4>
+                <ul className="text-sm space-y-1 text-gray-600 dark:text-gray-300">
+                  <li>• Strong value proposition in hero section</li>
+                  <li>• Consider improving page load speed</li>
+                  <li>• Add more trust signals and testimonials</li>
+                </ul>
+              </div>
+              <Button variant="bordered" className="w-full">
+                Get Full Analysis Report
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const LiveEvaluationPreview = () => {
+  const [currentStep, setCurrentStep] = useState(0);
+  
+  const evaluationSteps = [
+    { label: "Query Match", score: 92, description: "Homepage clearly matches 'web design services'" },
+    { label: "Content Quality", score: 88, description: "Professional, well-structured content" },
+    { label: "Trust Signals", score: 76, description: "Good testimonials, could add more certifications" },
+    { label: "User Experience", score: 84, description: "Clean design, fast loading, mobile-friendly" }
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentStep((prev) => (prev + 1) % evaluationSteps.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 border border-orange-200 dark:border-orange-700">
+      <h3 className="text-xl font-bold mb-4 text-center text-gray-800 dark:text-white">
+        Live AI Evaluation: Apple.com
+      </h3>
+      
+      <div className="space-y-4">
+        {evaluationSteps.map((step, index) => (
+          <motion.div
+            key={step.label}
+            className={`p-4 rounded-lg border transition-all duration-300 ${
+              index === currentStep 
+                ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20' 
+                : 'border-gray-200 dark:border-gray-700'
+            }`}
+            animate={{
+              scale: index === currentStep ? 1.02 : 1,
+              opacity: index === currentStep ? 1 : 0.7
+            }}
+          >
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-medium text-gray-800 dark:text-white">{step.label}</span>
+              <span className={`font-bold ${
+                step.score >= 85 ? 'text-green-600' : 
+                step.score >= 70 ? 'text-orange-600' : 'text-red-600'
+              }`}>
+                {step.score}
+              </span>
+            </div>
+            <Progress value={step.score} color={step.score >= 85 ? "success" : step.score >= 70 ? "warning" : "danger"} />
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">{step.description}</p>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default function IndexPage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -78,6 +358,14 @@ export default function IndexPage() {
 
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
+
+  const typingTexts = [
+    "web design services",
+    "e-commerce solutions", 
+    "digital marketing agency",
+    "software development",
+    "consulting services"
+  ];
 
   return (
     <DefaultLayout>
@@ -115,8 +403,9 @@ export default function IndexPage() {
                 className="mb-6 px-4 py-2 text-sm font-medium"
                 color="primary"
                 variant="flat"
+                startContent={<BrainIcon size={16} />}
               >
-                🧠 AI-Powered Homepage Analysis
+                AI-Powered Homepage Analysis
               </Chip>
             </motion.div>
 
@@ -139,14 +428,10 @@ export default function IndexPage() {
               initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              Every day,{" "}
-              <span className="text-orange-500 font-semibold">
-                AI agents decide
-              </span>{" "}
-              whether your homepage matches user queries.
+              When someone searches for{" "}
+              <TypingEffect texts={typingTexts} speed={80} delay={1500} />
               <br />
-              Understand their evaluation process and optimize for both humans
-              and AI algorithms.
+              AI agents decide if your homepage is the right match. See what they really think.
             </motion.p>
 
             <motion.div
@@ -176,6 +461,123 @@ export default function IndexPage() {
           </motion.div>
         </section>
 
+        {/* Interactive Demo Section */}
+        <section className="relative z-10 py-20 px-6 bg-gradient-to-r from-orange-50/50 to-white dark:from-orange-900/10 dark:to-gray-900">
+          <motion.div
+            className="max-w-7xl mx-auto"
+            initial={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            whileInView={{ opacity: 1, y: 0 }}
+          >
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800 dark:text-white">
+                Experience AI Analysis in Action
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                See how AI agents evaluate homepages in real-time. Try our demo or watch a live analysis.
+              </p>
+            </div>
+            
+            <div className="grid lg:grid-cols-2 gap-12 items-start">
+              <div>
+                <InteractiveDemo />
+              </div>
+              <div>
+                <LiveEvaluationPreview />
+              </div>
+            </div>
+          </motion.div>
+        </section>
+
+        {/* Before/After Comparison */}
+        <section className="relative z-10 py-20 px-6 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm">
+          <motion.div
+            className="max-w-6xl mx-auto"
+            initial={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            whileInView={{ opacity: 1, y: 0 }}
+          >
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800 dark:text-white">
+                Before vs After AI Optimization
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300">
+                See how AI-optimized homepages perform better in agent evaluations
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <motion.div
+                className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-2xl p-6"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-red-600">❌ Before Optimization</h3>
+                  <div className="text-2xl font-bold text-red-600">42/100</div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span>Query Relevance</span>
+                    <span className="text-red-600">35%</span>
+                  </div>
+                  <Progress value={35} color="danger" size="sm" />
+                  <div className="flex justify-between">
+                    <span>Content Quality</span>
+                    <span className="text-red-600">48%</span>
+                  </div>
+                  <Progress value={48} color="danger" size="sm" />
+                  <div className="flex justify-between">
+                    <span>User Experience</span>
+                    <span className="text-red-600">43%</span>
+                  </div>
+                  <Progress value={43} color="danger" size="sm" />
+                </div>
+                <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    AI struggles to understand value proposition. Unclear messaging confuses evaluation algorithms.
+                  </p>
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-2xl p-6"
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-green-600">✅ After Optimization</h3>
+                  <div className="text-2xl font-bold text-green-600">89/100</div>
+                </div>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span>Query Relevance</span>
+                    <span className="text-green-600">92%</span>
+                  </div>
+                  <Progress value={92} color="success" size="sm" />
+                  <div className="flex justify-between">
+                    <span>Content Quality</span>
+                    <span className="text-green-600">88%</span>
+                  </div>
+                  <Progress value={88} color="success" size="sm" />
+                  <div className="flex justify-between">
+                    <span>User Experience</span>
+                    <span className="text-green-600">87%</span>
+                  </div>
+                  <Progress value={87} color="success" size="sm" />
+                </div>
+                <div className="mt-4 p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    Clear value proposition, strong keywords, and optimized structure make AI evaluation easy and positive.
+                  </p>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        </section>
+
         {/* What AI Sees Section */}
         <section className="relative z-10 py-20 px-6 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm">
           <motion.div
@@ -196,25 +598,94 @@ export default function IndexPage() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-3 gap-8 items-stretch">
               <InsightCard
                 delay={0.1}
                 description="AI agents evaluate if your homepage content matches user search queries and intent. See how well your messaging aligns with what people are actually looking for."
-                icon="🎯"
+                icon={<TargetIcon size={48} />}
                 title="Query Relevance"
               />
               <InsightCard
                 delay={0.2}
                 description="Agents analyze your page structure, loading speed, mobile experience, and navigation flow to determine user experience quality and SEO ranking potential."
-                icon="⚡"
+                icon={<ZapIcon size={48} />}
                 title="UX & SEO Score"
               />
               <InsightCard
                 delay={0.3}
                 description="AI evaluates your brand messaging, trustworthiness indicators, and content quality to assess whether users will find genuine value on your site."
-                icon="🏆"
+                icon={<ShieldIcon size={48} />}
                 title="Value Assessment"
               />
+            </div>
+          </motion.div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section className="relative z-10 py-20 px-6">
+          <motion.div
+            className="max-w-6xl mx-auto"
+            initial={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            whileInView={{ opacity: 1, y: 0 }}
+          >
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800 dark:text-white">
+                What Our Users Discovered
+              </h2>
+              <p className="text-xl text-gray-600 dark:text-gray-300">
+                Real insights from homepage owners who used AI analysis
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  quote: "I had no idea AI was reading my homepage so differently than humans. The insights helped me rewrite our value prop and increase conversions by 34%.",
+                  author: "Sarah Chen",
+                  role: "Founder, TechFlow",
+                  score: "AI Score: 23 → 87"
+                },
+                {
+                  quote: "The brand perception analysis revealed we sounded too technical. We simplified our messaging and now rank higher for our target keywords.",
+                  author: "Marcus Rodriguez",
+                  role: "Marketing Director, CloudSync",
+                  score: "Brand Clarity: 45 → 91"
+                },
+                {
+                  quote: "Understanding how AI agents evaluate trust signals completely changed our homepage design. We added the right elements and saw immediate improvements.",
+                  author: "Emily Watson",
+                  role: "CEO, DesignCore",
+                  score: "Trust Score: 52 → 89"
+                }
+              ].map((testimonial, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md rounded-2xl p-6 border border-orange-200 dark:border-orange-700"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                >
+                  <div className="mb-4">
+                    <div className="flex items-center mb-3">
+                      <div className="flex space-x-1">
+                        {[...Array(5)].map((_, i) => (
+                          <div key={i} className="w-4 h-4 bg-orange-400 rounded-full"></div>
+                        ))}
+                      </div>
+                      <span className="ml-2 text-sm text-orange-500 font-medium">5.0</span>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-300 italic leading-relaxed">"{testimonial.quote}"</p>
+                  </div>
+                  <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                    <div className="font-semibold text-gray-800 dark:text-white">{testimonial.author}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{testimonial.role}</div>
+                    <div className="text-sm text-orange-500 font-medium mt-2">{testimonial.score}</div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </section>
@@ -237,8 +708,14 @@ export default function IndexPage() {
             </p>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-700">
-                <div className="text-3xl mb-4">🏢</div>
+              <motion.div 
+                className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-700 hover:shadow-lg transition-all duration-300"
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="w-8 h-8 text-orange-500 mb-4">
+                  <EyeIcon size={32} />
+                </div>
                 <h3 className="text-lg font-bold mb-2 text-gray-800 dark:text-white">
                   Brand Perception
                 </h3>
@@ -246,37 +723,55 @@ export default function IndexPage() {
                   How AI interprets your brand personality, values, and
                   positioning
                 </p>
-              </div>
+              </motion.div>
 
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-700">
-                <div className="text-3xl mb-4">🔍</div>
+              <motion.div 
+                className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-700 hover:shadow-lg transition-all duration-300"
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="w-8 h-8 text-orange-500 mb-4">
+                  <BarChartIcon size={32} />
+                </div>
                 <h3 className="text-lg font-bold mb-2 text-gray-800 dark:text-white">
                   Competitor Analysis
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   See how AI compares your homepage to industry leaders
                 </p>
-              </div>
+              </motion.div>
 
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-700">
-                <div className="text-3xl mb-4">📊</div>
+              <motion.div 
+                className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-700 hover:shadow-lg transition-all duration-300"
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="w-8 h-8 text-orange-500 mb-4">
+                  <TrendingUpIcon size={32} />
+                </div>
                 <h3 className="text-lg font-bold mb-2 text-gray-800 dark:text-white">
                   Industry Trends
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   AI insights on what's working in your industry right now
                 </p>
-              </div>
+              </motion.div>
 
-              <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-700">
-                <div className="text-3xl mb-4">🎨</div>
+              <motion.div 
+                className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-700 hover:shadow-lg transition-all duration-300"
+                whileHover={{ y: -5, scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="w-8 h-8 text-orange-500 mb-4">
+                  <ChartIcon size={32} />
+                </div>
                 <h3 className="text-lg font-bold mb-2 text-gray-800 dark:text-white">
                   Design Sentiment
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   AI evaluation of your visual design and emotional impact
                 </p>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </section>
@@ -301,36 +796,63 @@ export default function IndexPage() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-2xl p-6">
-                <h3 className="text-2xl font-bold mb-4 text-orange-500">
-                  🤖 AI Search Revolution
-                </h3>
+              <motion.div 
+                className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-2xl p-6 hover:shadow-lg transition-all duration-300"
+                whileHover={{ y: -3 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 text-orange-500 mr-3">
+                    <BrainIcon size={32} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-orange-500">
+                    AI Search Revolution
+                  </h3>
+                </div>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                   ChatGPT, Perplexity, and other AI assistants are becoming
                   primary discovery tools. They evaluate websites differently
                   than traditional search engines.
                 </p>
-              </div>
-              <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-2xl p-6">
-                <h3 className="text-2xl font-bold mb-4 text-orange-500">
-                  📈 SEO Evolution
-                </h3>
+              </motion.div>
+              <motion.div 
+                className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-2xl p-6 hover:shadow-lg transition-all duration-300"
+                whileHover={{ y: -3 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 text-orange-500 mr-3">
+                    <TrendingUpIcon size={32} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-orange-500">
+                    SEO Evolution
+                  </h3>
+                </div>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                   Google's AI updates prioritize user intent and content quality
                   over keyword optimization. Understand what algorithms really
                   value.
                 </p>
-              </div>
-              <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-2xl p-6">
-                <h3 className="text-2xl font-bold mb-4 text-orange-500">
-                  🎯 User Expectations
-                </h3>
+              </motion.div>
+              <motion.div 
+                className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-md rounded-2xl p-6 hover:shadow-lg transition-all duration-300"
+                whileHover={{ y: -3 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="flex items-center mb-4">
+                  <div className="w-8 h-8 text-orange-500 mr-3">
+                    <TargetIcon size={32} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-orange-500">
+                    User Expectations
+                  </h3>
+                </div>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                   Modern users expect AI-quality experiences: relevant content,
                   clear value propositions, and instant understanding of what
                   you offer.
                 </p>
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </section>

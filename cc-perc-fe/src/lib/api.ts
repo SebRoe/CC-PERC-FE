@@ -6,14 +6,16 @@ export interface AuthResponse {
   user: {
     id: string
     email: string
-    name?: string
+    first_name?: string
+    last_name?: string
   }
 }
 
 export interface User {
   id: string
   email: string
-  name?: string
+  first_name?: string
+  last_name?: string
 }
 
 class ApiClient {
@@ -60,10 +62,15 @@ class ApiClient {
     return response.json()
   }
 
-  async register(email: string, password: string, name: string): Promise<AuthResponse> {
+  async register(
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+  ): Promise<AuthResponse> {
     return this.request<AuthResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password, name }),
+      body: JSON.stringify({ email, password, first_name: firstName, last_name: lastName }),
     })
   }
 

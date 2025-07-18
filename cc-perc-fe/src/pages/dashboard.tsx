@@ -399,14 +399,14 @@ export default function DashboardPage() {
                   classNames={{
                     tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
                     cursor: "w-full bg-orange-500",
-                    tab: "max-w-fit px-0 h-12",
+                    tab: "px-0 h-12 w-full",
                     tabContent: "group-data-[selected=true]:text-orange-500"
                   }}
                 >
                   <Tab
                     key="insights"
                     title={
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full">
                         <TargetIcon size={16} />
                         <span>Insights</span>
                       </div>
@@ -443,7 +443,7 @@ export default function DashboardPage() {
                   <Tab
                     key="metrics"
                     title={
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full">
                         <BarChartIcon size={16} />
                         <span>Metrics</span>
                       </div>
@@ -500,7 +500,7 @@ export default function DashboardPage() {
                   <Tab
                     key="activity"
                     title={
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full">
                         <ZapIcon size={16} />
                         <span>Activity</span>
                       </div>

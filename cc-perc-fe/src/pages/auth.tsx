@@ -41,11 +41,13 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
-    name: "",
+    firstName: "",
+    lastName: "",
   });
   const [error, setError] = useState("");
 
@@ -64,7 +66,12 @@ export default function AuthPage() {
         if (formData.password !== formData.confirmPassword) {
           throw new Error("Passwords do not match");
         }
-        await register(formData.email, formData.password, formData.name);
+        await register(
+          formData.email,
+          formData.password,
+          formData.firstName,
+          formData.lastName,
+        );
       }
       navigate("/dashboard");
     } catch (error) {
@@ -109,7 +116,7 @@ export default function AuthPage() {
                   <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                     Welcome to{" "}
                     <span className="bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 bg-clip-text text-transparent">
-                      CC-PERC
+                        Ai<span className="font-bold text-2xl">∀</span>i
                     </span>
                   </h1>
                   <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
@@ -210,19 +217,37 @@ export default function AuthPage() {
                           initial={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.3 }}
                         >
+                          {/* First Name */}
                           <Input
                             className="mb-4"
                             classNames={{
                               inputWrapper:
                                 "bg-white dark:bg-gray-700 border-2 border-orange-200 dark:border-orange-700 hover:border-orange-300 focus-within:border-orange-500",
                             }}
-                            label="Full Name"
-                            placeholder="Enter your full name"
+                            label="First Name"
+                            placeholder="Enter your first name"
                             required={!isLogin}
                             type="text"
-                            value={formData.name}
+                            value={formData.firstName}
                             onChange={(e) =>
-                              handleInputChange("name", e.target.value)
+                              handleInputChange("firstName", e.target.value)
+                            }
+                          />
+
+                          {/* Last Name */}
+                          <Input
+                            className="mb-4"
+                            classNames={{
+                              inputWrapper:
+                                "bg-white dark:bg-gray-700 border-2 border-orange-200 dark:border-orange-700 hover:border-orange-300 focus-within:border-orange-500",
+                            }}
+                            label="Last Name"
+                            placeholder="Enter your last name"
+                            required={!isLogin}
+                            type="text"
+                            value={formData.lastName}
+                            onChange={(e) =>
+                              handleInputChange("lastName", e.target.value)
                             }
                           />
                         </motion.div>
@@ -256,7 +281,7 @@ export default function AuthPage() {
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                         >
-                          {showPassword ? "👁️" : "🙈"}
+                          {showPassword ? "🙊" : "🙈"}
                         </button>
                       }
                       label="Password"
@@ -284,13 +309,22 @@ export default function AuthPage() {
                             label="Confirm Password"
                             placeholder="Confirm your password"
                             required={!isLogin}
-                            type="password"
+                            type={showConfirmPassword ? "text" : "password"}
                             value={formData.confirmPassword}
                             onChange={(e) =>
                               handleInputChange(
                                 "confirmPassword",
                                 e.target.value,
                               )
+                            }
+                            endContent={
+                              <button
+                                className="text-gray-400 hover:text-orange-500 transition-colors"
+                                type="button"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              >
+                                {showConfirmPassword ? "😉" : "🤔"}
+                              </button>
                             }
                           />
                         </motion.div>

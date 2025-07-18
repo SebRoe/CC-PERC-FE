@@ -5,6 +5,7 @@ import {
 } from "react-router-dom";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { Spinner } from "@heroui/spinner";
 import IndexPage from "@/pages/index";
 import AuthPage from "@/pages/auth";
 import DashboardPage from "@/pages/dashboard";
@@ -15,7 +16,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading...
+        <Spinner color="warning" size="lg" variant="dots" />
       </div>
     );
   }
@@ -29,7 +30,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading...
+        <Spinner color="warning" size="lg" variant="dots" />
       </div>
     );
   }

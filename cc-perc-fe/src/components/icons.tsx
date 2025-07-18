@@ -405,17 +405,26 @@ export const OrgIcon = ({
   >
     <defs>
       <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0%" stopColor="#f97316"/>
-        <stop offset="100%" stopColor="#ea580c"/>
+        <stop offset="0%" stopColor="#f97316" />
+        <stop offset="100%" stopColor="#ea580c" />
       </linearGradient>
     </defs>
 
-  <rect width="64" height="64" rx="12" fill="url(#grad)" />
-  <path
-    d="M13 24c0-.864.933-1.406 1.683-.977l16.217 9.123a1.125 1.125 0 0 1 0 1.954L14.683 43.223A1.125 1.125 0 0 1 13 42.246V24Zm22.5 0c0-.864.933-1.406 1.683-.977l16.217 9.123a1.125 1.125 0 0 1 0 1.954L37.183 43.223a1.125 1.125 0 0 1-1.683-.977V24Z"
-    fill="white"
-  />
-</svg>
+    {/* Background rounded square with orange gradient */}
+    <rect width="64" height="64" rx="12" fill="url(#grad)" />
+
+    {/* Centered FastForward icon (outlined, not filled) */}
+    <g transform="translate(8 8) scale(2)">
+      <path
+        d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061A1.125 1.125 0 0 1 3 16.811V8.69ZM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061a1.125 1.125 0 0 1-1.683-.977V8.69Z"
+        stroke="white"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </g>
+  </svg>
 );
 
 export const BeakerIcon = ({

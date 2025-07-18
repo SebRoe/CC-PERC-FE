@@ -403,7 +403,6 @@ export default function IndexPage() {
                 className="mb-6 px-4 py-2 text-sm font-medium"
                 color="primary"
                 variant="flat"
-                startContent={<BrainIcon size={16} />}
               >
                 AI-Powered Homepage Analysis
               </Chip>

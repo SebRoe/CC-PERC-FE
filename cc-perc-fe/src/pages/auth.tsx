@@ -116,7 +116,7 @@ export default function AuthPage() {
                   <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
                     Welcome to{" "}
                     <span className="bg-gradient-to-r from-orange-600 via-orange-500 to-orange-400 bg-clip-text text-transparent">
-                        Ai<span className="font-bold text-2xl">∀</span>i
+                        Ai<span className="font-bold" style={{ fontSize: "1.2em" }}>∀</span>i
                     </span>
                   </h1>
                   <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">

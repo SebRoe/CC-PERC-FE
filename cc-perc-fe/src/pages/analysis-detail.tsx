@@ -6,19 +6,27 @@ import { Card, CardBody } from "@heroui/card";
 import { Tabs, Tab } from "@heroui/tabs";
 import { Progress } from "@heroui/progress";
 import DashboardLayout from "@/layouts/dashboard";
-import { apiClient } from "@/lib/api";
+import { api } from "@/lib/api-with-interceptor";
+import type { Analysis, DetailedReport } from "@/types/analysis";
 import {
   ArrowLeftIcon,
   BrainIcon,
   GlobeIcon,
   EditIcon,
   BarChartIcon,
+  ZapIcon,
+  AlertCircleIcon,
+  CheckCircleIcon,
+  XCircleIcon,
 } from "@/components/icons";
+import { ExecutiveSummary } from "@/components/analysis/ExecutiveSummary";
+import { PerformanceMetrics } from "@/components/analysis/PerformanceMetrics";
 
 export default function AnalysisDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [analysis, setAnalysis] = useState<any | null>(null);
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [report, setReport] = useState<DetailedReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,8 +34,21 @@ export default function AnalysisDetailPage() {
     const fetchAnalysis = async () => {
       try {
         if (id) {
-          const data = await apiClient.getAnalysis(id);
+          const data = await api.getAnalysis(id);
           setAnalysis(data);
+          
+          // If report is included in the analysis, use it
+          if (data.report) {
+            setReport(data.report);
+          } else {
+            // Otherwise fetch the report separately
+            try {
+              const reportData = await api.getAnalysisReport(id, 'json') as DetailedReport;
+              setReport(reportData);
+            } catch (err) {
+              console.error("Failed to fetch report", err);
+            }
+          }
         }
       } catch (err) {
         console.error(err);
@@ -59,8 +80,14 @@ export default function AnalysisDetailPage() {
     );
   }
 
-  const { summary, content, seo, ux, visual_analysis } = analysis.ai_analysis || {};
-  const score = summary?.overall_score ?? 0;
+  // Extract data from enhanced structure
+  const aiAnalysis = analysis.ai_analysis || {};
+  const performanceAnalysis = analysis.performance_analysis;
+  const { summary, content, seo, ux, visual_analysis, scores, technical_seo, html_analysis, competitive_insights } = aiAnalysis;
+  
+  // Get score from the new structure
+  const score = report?.executive_summary?.overall_score || scores?.overall_score || summary?.overall_score || 0;
+  const grade = report?.executive_summary?.grade || (score >= 90 ? "A+" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : "D");
 
   return (
     <DashboardLayout>
@@ -81,60 +108,8 @@ export default function AnalysisDetailPage() {
           Created at: {new Date(analysis.created_at).toLocaleString()}
         </p>
 
-        {/* Summary Card */}
-        <Card>
-          <CardBody className="p-6 space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-                <BrainIcon className="text-white" size={28} />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold">Overall Score</h2>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-4xl font-bold ${
-                      score >= 80
-                        ? "text-green-600"
-                        : score >= 60
-                        ? "text-orange-600"
-                        : "text-red-600"
-                    }`}
-                  >
-                    {score}
-                  </span>
-                  <Progress
-                    className="flex-1"
-                    color={score >= 80 ? "success" : score >= 60 ? "warning" : "danger"}
-                    size="sm"
-                    value={score}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {summary?.key_findings && (
-              <div>
-                <h3 className="font-medium text-lg mb-2">Key Findings</h3>
-                <ul className="list-disc pl-5 space-y-1 text-gray-700 dark:text-gray-300">
-                  {summary.key_findings.map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {summary?.action_items && (
-              <div>
-                <h3 className="font-medium text-lg mb-2">Action Items</h3>
-                <ul className="list-disc pl-5 space-y-1 text-gray-700 dark:text-gray-300">
-                  {summary.action_items.map((item: string, idx: number) => (
-                    <li key={idx}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </CardBody>
-        </Card>
+        {/* Executive Summary */}
+        <ExecutiveSummary report={report} analysis={analysis} />
 
         {/* Detailed Tabs */}
         <Tabs
@@ -147,7 +122,7 @@ export default function AnalysisDetailPage() {
             key="content"
             title={
               <div className="flex items-center gap-2">
-                <EditIcon size={16} /> <span>Content</span>
+                <EditIcon size={16} className="text-orange-500" /> <span>Content</span>
               </div>
             }
           >
@@ -187,7 +162,7 @@ export default function AnalysisDetailPage() {
             key="seo"
             title={
               <div className="flex items-center gap-2">
-                <GlobeIcon size={16} /> <span>SEO</span>
+                <GlobeIcon size={16} className="text-orange-500" /> <span>SEO</span>
               </div>
             }
           >
@@ -223,7 +198,7 @@ export default function AnalysisDetailPage() {
             key="ux"
             title={
               <div className="flex items-center gap-2">
-                <BarChartIcon size={16} /> <span>UX</span>
+                <BarChartIcon size={16} className="text-orange-500" /> <span>UX</span>
               </div>
             }
           >
@@ -252,11 +227,157 @@ export default function AnalysisDetailPage() {
           </Tab>
 
           <Tab key="visual" title="Visual">
-            {visual_analysis ? (
-              <pre className="mt-4 whitespace-pre-wrap text-sm">{visual_analysis}</pre>
-            ) : (
-              <p className="text-gray-500 mt-4">No visual analysis available.</p>
-            )}
+            <div className="mt-4 space-y-4">
+              {aiAnalysis.visual_analysis ? (
+                <Card>
+                  <CardBody className="p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Layout Score</span>
+                      <span className="text-lg font-semibold">{aiAnalysis.visual_analysis.layout_score}/10</span>
+                    </div>
+                    
+                    {aiAnalysis.visual_analysis.visual_hierarchy && (
+                      <div>
+                        <p className="font-medium mb-2">Visual Hierarchy</p>
+                        <ul className="list-disc pl-5 text-sm space-y-1">
+                          {aiAnalysis.visual_analysis.visual_hierarchy.map((item: string, idx: number) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {aiAnalysis.visual_analysis.improvement_suggestions && (
+                      <div>
+                        <p className="font-medium mb-2">Improvement Suggestions</p>
+                        <ul className="list-disc pl-5 text-sm space-y-1">
+                          {aiAnalysis.visual_analysis.improvement_suggestions.map((item: string, idx: number) => (
+                            <li key={idx}>{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    <p>
+                      <span className="font-medium">Mobile Responsiveness: </span>
+                      {aiAnalysis.visual_analysis.mobile_responsiveness}
+                    </p>
+                  </CardBody>
+                </Card>
+              ) : visual_analysis ? (
+                <pre className="whitespace-pre-wrap text-sm">{visual_analysis}</pre>
+              ) : (
+                <p className="text-gray-500">No visual analysis available.</p>
+              )}
+            </div>
+          </Tab>
+
+          <Tab
+            key="performance"
+            title={
+              <div className="flex items-center gap-2">
+                <ZapIcon size={16} className="text-orange-500" /> <span>Performance</span>
+              </div>
+            }
+          >
+            <div className="mt-4">
+              <PerformanceMetrics performance={performanceAnalysis} />
+            </div>
+          </Tab>
+
+          <Tab key="technical" title="Technical">
+            <div className="mt-4 space-y-4">
+              {/* HTML Structure */}
+              {html_analysis && (
+                <Card>
+                  <CardBody className="p-4 space-y-3">
+                    <h3 className="font-semibold">HTML Analysis</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium">Total Headings:</span> {html_analysis.heading_structure?.total_headings || 0}
+                      </div>
+                      <div>
+                        <span className="font-medium">Semantic HTML Score:</span> {html_analysis.semantic_html?.semantic_score?.toFixed(0) || 0}%
+                      </div>
+                      <div>
+                        <span className="font-medium">Images with Alt Text:</span> {html_analysis.images?.alt_text_percentage?.toFixed(0) || 0}%
+                      </div>
+                      <div>
+                        <span className="font-medium">Total Links:</span> {html_analysis.links?.total_links || 0}
+                      </div>
+                    </div>
+                  </CardBody>
+                </Card>
+              )}
+
+              {/* Technical SEO */}
+              {technical_seo && (
+                <Card>
+                  <CardBody className="p-4 space-y-3">
+                    <h3 className="font-semibold">Technical SEO</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Structured Data:</span>
+                        {technical_seo.structured_data ? (
+                          <><CheckCircleIcon size={16} className="text-green-500" /> <span className="text-green-600">Implemented</span></>
+                        ) : (
+                          <><XCircleIcon size={16} className="text-red-500" /> <span className="text-red-600">Missing</span></>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Open Graph:</span>
+                        {technical_seo.open_graph && Object.keys(technical_seo.open_graph).length > 0 ? (
+                          <><CheckCircleIcon size={16} className="text-green-500" /> <span className="text-green-600">Implemented</span></>
+                        ) : (
+                          <><XCircleIcon size={16} className="text-red-500" /> <span className="text-red-600">Missing</span></>
+                        )}
+                      </div>
+                      <p>
+                        <span className="font-medium">Canonical URL:</span>{' '}
+                        {technical_seo.canonical_url || 'Not specified'}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Sitemap Reference:</span>
+                        {technical_seo.sitemap_reference ? (
+                          <><CheckCircleIcon size={16} className="text-green-500" /> <span className="text-green-600">Yes</span></>
+                        ) : (
+                          <><XCircleIcon size={16} className="text-red-500" /> <span className="text-red-600">No</span></>
+                        )}
+                      </div>
+                    </div>
+                  </CardBody>
+                </Card>
+              )}
+
+              {/* Competitive Insights */}
+              {competitive_insights && (
+                <Card>
+                  <CardBody className="p-4 space-y-3">
+                    <h3 className="font-semibold">Competitive Insights</h3>
+                    {competitive_insights.missing_elements && competitive_insights.missing_elements.length > 0 && (
+                      <div>
+                        <p className="font-medium text-sm mb-2">Missing Industry Standard Elements:</p>
+                        <ul className="list-disc pl-5 text-sm space-y-1">
+                          {competitive_insights.missing_elements.map((item: string, idx: number) => (
+                            <li key={idx} className="text-red-600">{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {competitive_insights.unique_elements && competitive_insights.unique_elements.length > 0 && (
+                      <div>
+                        <p className="font-medium text-sm mb-2">Unique Strengths:</p>
+                        <ul className="list-disc pl-5 text-sm space-y-1">
+                          {competitive_insights.unique_elements.map((item: string, idx: number) => (
+                            <li key={idx} className="text-green-600">{item}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </CardBody>
+                </Card>
+              )}
+            </div>
           </Tab>
         </Tabs>
       </div>

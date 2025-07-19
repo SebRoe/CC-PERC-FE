@@ -19,7 +19,8 @@ import {
   EyeIcon,
   BarChartIcon,
 } from "@/components/icons";
-import { apiClient } from "@/lib/api";
+import { api } from "@/lib/api-with-interceptor";
+import type { Analysis } from "@/types/analysis";
 
 const DashboardCard = ({
   children,
@@ -88,7 +89,7 @@ const StatCard = ({
 );
 
 interface AnalysisCardProps {
-  analysis: any; // backend payload shape
+  analysis: Analysis;
   delay?: number;
 }
 
@@ -96,8 +97,23 @@ const AnalysisCard = ({ analysis, delay = 0, onDelete }: AnalysisCardProps & { o
   const navigate = useNavigate();
   const url = new URL(analysis.url).hostname;
   const status = analysis.status;
-  const score = analysis.ai_analysis?.summary?.overall_score ?? 0;
-  const insights: string[] = analysis.ai_analysis?.summary?.key_findings ?? [];
+  
+  // Get score from the enhanced structure
+  const score = analysis.report?.executive_summary?.overall_score || 
+                analysis.ai_analysis?.scores?.overall_score || 
+                analysis.ai_analysis?.summary?.overall_score || 0;
+  
+  const grade = analysis.report?.executive_summary?.grade || 
+                (score >= 90 ? "A+" : score >= 80 ? "A" : score >= 70 ? "B" : score >= 60 ? "C" : "D");
+  
+  // Get insights from the enhanced structure
+  const insights: string[] = analysis.report?.executive_summary?.key_findings || 
+                            analysis.ai_analysis?.summary?.key_findings || [];
+  
+  // Get performance score if available
+  const performanceScore = analysis.ai_analysis?.scores?.performance_score;
+  const processingTime = analysis.processing_time;
+  
   const timestamp = new Date(analysis.created_at).toLocaleString();
 
   return (
@@ -124,8 +140,9 @@ const AnalysisCard = ({ analysis, delay = 0, onDelete }: AnalysisCardProps & { o
             </div>
           </div>
           <div className="text-right">
-            <div
-              className={`text-2xl font-bold ${
+            <div className="flex items-baseline gap-2">
+              <div
+                className={`text-2xl font-bold ${
                 score >= 80
                   ? "text-green-600"
                   : score >= 60
@@ -133,10 +150,14 @@ const AnalysisCard = ({ analysis, delay = 0, onDelete }: AnalysisCardProps & { o
                     : "text-red-600"
               }`}
             >
-              {score}
+              {Math.round(score)}
+              </div>
+              <span className="text-lg font-semibold text-gray-600 dark:text-gray-400">
+                {grade}
+              </span>
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              AI Score
+              Overall Score
             </div>
           </div>
         </div>
@@ -207,14 +228,14 @@ export default function DashboardPage() {
   const [newAnalysisUrl, setNewAnalysisUrl] = useState("");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [analyses, setAnalyses] = useState<any[]>([]);
+  const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const fetchAnalyses = async () => {
     try {
-      const list = await apiClient.getAnalyses();
-      setAnalyses(list.sort((a: any, b: any) => (a.created_at < b.created_at ? 1 : -1)));
+      const list = await api.getAnalyses();
+      setAnalyses(list.sort((a, b) => (a.created_at < b.created_at ? 1 : -1)));
     } catch (err) {
       console.error("Failed to fetch analyses", err);
     }
@@ -232,7 +253,7 @@ export default function DashboardPage() {
   };
 
   const handleDelete = async (id: string) => {
-    await apiClient.deleteAnalysis(id);
+    await api.deleteAnalysis(id);
     await fetchAnalyses();
   };
 
@@ -255,7 +276,7 @@ export default function DashboardPage() {
 
     try {
       setIsSubmitting(true);
-      await apiClient.requestAnalysis(urlToAnalyze, "homepage");
+      await api.requestAnalysis(urlToAnalyze, "homepage");
       setNewAnalysisUrl("");
       await fetchAnalyses();
     } catch (err) {

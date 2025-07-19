@@ -1,3 +1,10 @@
+import type { 
+  Analysis, 
+  AnalysisRequest, 
+  DetailedReport,
+  ReportFormat 
+} from '../types/analysis'
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
 
 export interface AuthResponse {
@@ -20,20 +27,14 @@ export interface User {
 
 class ApiClient {
   private baseUrl: string
-  private token: string | null = null
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
-    this.token = localStorage.getItem('access_token')
   }
 
   setToken(token: string | null) {
-    this.token = token
-    if (token) {
-      localStorage.setItem('access_token', token)
-    } else {
-      localStorage.removeItem('access_token')
-    }
+    // No longer needed with httpOnly cookies
+    // Token is managed by the browser automatically
   }
 
   private async request<T>(
@@ -45,18 +46,20 @@ class ApiClient {
       ...options.headers,
     }
 
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`
-    }
-
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
       headers,
+      credentials: 'include', // Include cookies in requests
     })
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: 'Network error' }))
-      throw new Error(error.detail || 'Request failed')
+      const errorMessage = error.detail || `Request failed with status ${response.status}`
+      
+      // Include status code in error for interceptor to handle
+      const err = new Error(errorMessage);
+      (err as any).status = response.status;
+      throw err;
     }
 
     return response.json()
@@ -86,41 +89,57 @@ class ApiClient {
   }
 
   async logout(): Promise<void> {
-    this.setToken(null)
+    await this.request<void>('/auth/logout', {
+      method: 'POST',
+    })
   }
 
   // ------------------------------------------------------------
   // Analysis endpoints
   // ------------------------------------------------------------
 
-  async requestAnalysis(url: string, analysisType: 'homepage' = 'homepage') {
-    type AnalysisResponse = {
-      id: string
-      url: string
-      status: 'pending' | 'processing' | 'completed' | 'failed'
-      analysis_type: string
-      ai_analysis?: Record<string, unknown>
-      screenshots?: string[]
-      created_at: string
-    }
-
-    return this.request<AnalysisResponse>('/analyze', {
+  async requestAnalysis(url: string, analysisType: 'homepage' = 'homepage'): Promise<Analysis> {
+    return this.request<Analysis>('/analyze', {
       method: 'POST',
-      body: JSON.stringify({ url, analysis_type: analysisType }),
+      body: JSON.stringify({ url, analysis_type: analysisType } as AnalysisRequest),
     })
   }
 
-  async getAnalyses(): Promise<any[]> {
-    return this.request<any[]>('/analyses')
+  async getAnalyses(): Promise<Analysis[]> {
+    return this.request<Analysis[]>('/analyses')
   }
 
-  async getAnalysis(id: string): Promise<any> {
-    return this.request<any>(`/analyses/${id}`)
+  async getAnalysis(id: string): Promise<Analysis> {
+    return this.request<Analysis>(`/analyses/${id}`)
   }
 
   async deleteAnalysis(id: string): Promise<void> {
     return this.request<void>(`/analyses/${id}`, { method: 'DELETE' })
   }
+
+  async getAnalysisReport(id: string, format: 'json' | 'markdown' | 'html' = 'json'): Promise<DetailedReport | string> {
+    const endpoint = `/analyses/${id}/report?format=${format}`
+    
+    if (format === 'json') {
+      return this.request<DetailedReport>(endpoint)
+    }
+    
+    // For markdown and html, we need to handle text response
+    const headers: HeadersInit = {}
+    
+    const response = await fetch(`${this.baseUrl}${endpoint}`, { 
+      headers,
+      credentials: 'include' // Include cookies in requests
+    })
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Network error' }))
+      throw new Error(error.detail || 'Request failed')
+    }
+    
+    return response.text()
+  }
 }
 
-export const apiClient = new ApiClient(API_BASE_URL)
+const apiClientInstance = new ApiClient(API_BASE_URL)
+export const apiClient = apiClientInstance

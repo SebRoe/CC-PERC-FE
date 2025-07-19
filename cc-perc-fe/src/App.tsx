@@ -9,6 +9,7 @@ import { Spinner } from "@heroui/spinner";
 import IndexPage from "@/pages/index";
 import AuthPage from "@/pages/auth";
 import DashboardPage from "@/pages/dashboard";
+import DashboardV1Page from "@/pages/dashboard-v1";
 import AnalysisDetailPage from "@/pages/analysis-detail";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -36,7 +37,7 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  return !isAuthenticated ? <>{children}</> : <Navigate to="/dashboard" />;
+  return !isAuthenticated ? <>{children}</> : <Navigate to="/dashboard-v1" />;
 };
 
 function App() {
@@ -52,12 +53,16 @@ function App() {
         path="/auth"
       />
       <Route
+        element={<Navigate to="/dashboard-v1" replace />}
+        path="/dashboard"
+      />
+      <Route
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <DashboardV1Page />
           </ProtectedRoute>
         }
-        path="/dashboard"
+        path="/dashboard-v1"
       />
       <Route
         element={

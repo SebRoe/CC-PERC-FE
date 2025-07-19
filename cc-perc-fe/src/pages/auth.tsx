@@ -73,7 +73,7 @@ export default function AuthPage() {
           formData.lastName,
         );
       }
-      navigate("/dashboard");
+      navigate("/dashboard-v1");
     } catch (error) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

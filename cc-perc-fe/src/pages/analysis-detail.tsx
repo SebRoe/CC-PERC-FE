@@ -21,6 +21,8 @@ import {
 } from "@/components/icons";
 import { ExecutiveSummary } from "@/components/analysis/ExecutiveSummary";
 import { PerformanceMetrics } from "@/components/analysis/PerformanceMetrics";
+import { HumanVsAIPerception } from "@/components/analysis/HumanVsAIPerception";
+import { EnhancedSEOAnalysis } from "@/components/analysis/EnhancedSEOAnalysis";
 
 export default function AnalysisDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -83,7 +85,7 @@ export default function AnalysisDetailPage() {
   // Extract data from enhanced structure
   const aiAnalysis = analysis.ai_analysis || {};
   const performanceAnalysis = analysis.performance_analysis;
-  const { summary, content, seo, ux, visual_analysis, scores, technical_seo, html_analysis, competitive_insights } = aiAnalysis;
+  const { summary, content, seo, ux, visual_analysis, scores, technical_seo, html_analysis, competitive_insights, ai_visibility, enhanced_seo } = aiAnalysis;
   
   // Get score from the new structure
   const score = report?.executive_summary?.overall_score || scores?.overall_score || summary?.overall_score || 0;
@@ -159,6 +161,19 @@ export default function AnalysisDetailPage() {
           </Tab>
 
           <Tab
+            key="ai-perception"
+            title={
+              <div className="flex items-center gap-2">
+                <BrainIcon size={16} className="text-orange-500" /> <span>AI Perception</span>
+              </div>
+            }
+          >
+            <div className="mt-4">
+              <HumanVsAIPerception aiVisibility={ai_visibility} enhancedSeo={enhanced_seo} />
+            </div>
+          </Tab>
+
+          <Tab
             key="seo"
             title={
               <div className="flex items-center gap-2">
@@ -166,7 +181,11 @@ export default function AnalysisDetailPage() {
               </div>
             }
           >
-            {seo ? (
+            {enhanced_seo ? (
+              <div className="mt-4">
+                <EnhancedSEOAnalysis seoData={enhanced_seo} />
+              </div>
+            ) : seo ? (
               <div className="space-y-3 mt-4">
                 <p>
                   <span className="font-medium">Title: </span>
